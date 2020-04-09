@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.title}}</title>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/layer/layer.js"></script>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <script src="/static/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/static/highlight/styles/dracula.css">
+    <script src="/static/highlight/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <link rel="stylesheet" href="/static/toastr/toastr.min.css">
+    <script src="/static/toastr/toastr.min.js"></script>
+</head>
+<style>
+    .shortselect{
+        background:#fafdfe;
+        height:28px;
+        width:180px;
+        line-height:28px;
+        border:1px solid #9bc0dd;
+        border-radius:2px;
+    }
+</style>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Coder</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                </ul>
+                <div style="float: right;line-height: 50px;color:white;"><span id="sayhi">您好 </span>, {{.uname}}<a href="/logout" style="color:white;"> [ 登出 ] </a></div>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+    <div class="container" style="margin-top:50px;">
+        <div class="affix" style="width: 100%;height:50px;padding-top:10px;background:white;">
+            <input id='location' class="input-sm" onclick="$('#codefile').click();">
+            <input type="button" id="i-check" value="浏览文件" class="btn btn-sm btn-info" onclick="$('#codefile').click();">
+            <input type="file" name="file" id='codefile'  accept="*.*" onchange="$('#location').val($('#codefile').val());" style="display: none">
+            <input class="btn btn-sm btn-primary" type="button" value="上传" onclick="readUploadCode()"> <input class="btn btn-sm btn-success" type="button" value="分析" onclick="analyse()">
+        </div>
+        <div style="margin-top:50px;">
+        <pre>
+            <code id="code">
+                // 请上传代码文件...
+                Please upload your code file...
+            </code>
+        </pre>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    window.onload=function(){
+        sayHi();
+    }
+    function showUploadDialog(){
+        layer.open({
+            type: 1
+            ,title: "上传文件"
+            ,content: "<div style='margin: 30px;'><input type='file' id='codefile'></div>"
+            ,btn: ['上传', '取消']
+            ,yes: function(index, layero){
+                layer.close(index)
+                readUploadCode()
+            }
+            ,btn2: function(index, layero){}
+            ,cancel: function(){}//右上角关闭回调
+        });
+    }
+    function readUploadCode(){
+        var obj     = document.getElementById("codefile")
+        var files   = obj.files;
+        if(files.length > 0){
+            var file    = files[0];
+            var reader  = new FileReader();
+            var code    = ""
+            var loading = layer.load(1);
+            reader.onload = function(){
+                layer.close(loading);
+                document.getElementById("code").innerHTML = hljs.highlightAuto(this.result).value;
+                toastr.info("上传成功!");
+            }
+            reader.readAsText(file, "gbk");
+        }else{
+            layer.close(loading);
+            toastr.error("请选择有效文件");
+        }
+    }
+
+    function analyse(){
+        var shapes = {{.shapes}};
+        var colors = {{.colors}};
+        var shapeOptions = "<option value='record'>默认</option>";
+        var whiteColorOptions = "<option value='white'>默认</option>";
+        var blackColorOptions = "<option value='black'>默认</option>";
+        var colorOptions = ""
+        for(i in shapes){
+            shapeOptions += "<option value='"+shapes[i].value+"'>"+shapes[i].label+"</option>"
+        }
+
+        for(j in colors){
+            colorOptions += "<option value='"+colors[j].value+"' style='background:"+colors[j].value+";'>"+colors[j].label+"</option>"
+        }
+
+        whiteColorOptions += colorOptions
+        blackColorOptions += colorOptions
+
+        var lp = layer.open({
+            title: "设置",
+            content: "<div><table style='border-collapse:separate; border-spacing:5px 10px;'>" +
+                "<tr>" +
+                    "<td style='text-align:right'>节点样式:</td>" +
+                    "<td>" +
+                        "<select class='shortselect' name='style'><option value='filled'>填充</option><option value='dashed'>虚线</option></select>"+
+                    "</td>" +
+                "</tr>"+
+                "<tr>" +
+                    "<td style='text-align:right'>节点形状:</td>" +
+                    "<td>" +
+                        "<select class='shortselect' name='shape'>"+shapeOptions+"</select>"+
+                    "</td>" +
+                "</tr>" +
+                "<tr>" +
+                    "<td style='text-align:right'>节点背景颜色:</td>" +
+                    "<td>" +
+                        "<select class='shortselect' name='color'>"+blackColorOptions+"</select>"+
+                    "</td>" +
+                "</tr>"+
+                "<tr>" +
+                    "<td style='text-align: right'>节点填充颜色:</td>" +
+                    "<td>" +
+                        "<select class='shortselect' name='fillcolor'>"+whiteColorOptions+"</select>"+
+                    "</td>" +
+                "</tr>"+
+                "<tr>" +
+                    "<td style='text-align:right'>背景颜色:</td>" +
+                    "<td>" +
+                        "<select class='shortselect' name='bgcolor'>"+whiteColorOptions+"</select>"+
+                    "</td>" +
+                "</tr>" +
+                "</table></div>",
+            yes: function(layero, index){
+                //layer.close(index)
+                doAnalyse({
+                    "bgcolor":  $("select[name='bgcolor']").find("option:selected").val(),
+                    "color":  $("select[name='color']").find("option:selected").val(),
+                    "fillcolor":  $("select[name='fillcolor']").find("option:selected").val(),
+                    "style":  $("select[name='style']").find("option:selected").val(),
+                    "shape":  $("select[name='shape']").find("option:selected").val(),
+                });
+            }
+
+        });
+    }
+
+    function doAnalyse(setting){
+        var obj  = document.getElementById("codefile");
+        var files= obj.files;
+        if(files.length <= 0){
+            toastr.error("请先上传")
+            return;
+        }
+        var formData = new FormData();
+        formData.append("bgcolor", setting.bgcolor)
+        formData.append("color", setting.color)
+        formData.append("style", setting.style)
+        formData.append("fillcolor", setting.fillcolor)
+        formData.append("shape", setting.shape)
+        formData.append("codefile", files[0]);
+        var loading = layer.load(1)
+        $.ajax({
+            url: "/analyse",
+            type: 'POST',
+            cache: false,
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType:"json",
+            success : function(ret) {
+                layer.close(loading);
+                if(ret.status){
+                    toastr.info(ret.msg)
+                    var index =layer.open({
+                        type: 1,
+                        title: "图片",
+                        content: "<div style='margin:10px;'><div style='margin:10px;'><button class='btn btn-sm btn-primary' onclick='downloadIamge(\"/"+ret.data+"\")'>下载</button></div><img src='/"+ret.data+"'/></div>"
+                    });
+                    layer.full(index);
+                }else{
+                    toastr.error(ret.msg)
+                }
+            },
+            error : function(data) {
+                layer.close(loading);
+            }
+        },"html");
+    }
+    function downloadIamge(imgsrc, name) {
+        let image = new Image();
+        // 解决跨域 Canvas 污染问题
+        image.setAttribute("crossOrigin", "anonymous");
+        image.onload = function() {
+            let canvas = document.createElement("canvas");
+            canvas.width = image.width;
+            canvas.height = image.height;
+            let context = canvas.getContext("2d");
+            context.drawImage(image, 0, 0, image.width, image.height);
+            let url = canvas.toDataURL("image/png"); //得到图片的base64编码数据
+            let a = document.createElement("a"); // 生成一个a元素
+            let event = new MouseEvent("click"); // 创建一个单击事件
+            a.download = name || "graph"; // 设置图片名称
+            a.href = url; // 将生成的URL设置为a.href属性
+            a.dispatchEvent(event); // 触发a的单击事件
+        };
+        image.src = imgsrc;
+    }
+
+    function sayHi(){
+        var str = ""
+        now = new Date(),hour = now.getHours()
+        if(hour < 6){
+            str = "凌晨好！";
+        } else if (hour < 9){
+            str = "早上好！";
+        } else if (hour < 12){
+            str = "上午好！";
+        } else if (hour < 14){
+            str = "中午好！";
+        } else if (hour < 17){
+            str = "下午好！";
+        } else if (hour < 19){
+            str = "傍晚好！";
+        } else if (hour < 22){
+            str = "晚上好！";
+        } else {
+           str = "夜里好！";
+        }
+
+        $("#sayhi").html(str)
+
+        return str;
+    }
+</script>

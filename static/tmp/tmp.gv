@@ -1,0 +1,13 @@
+digraph G {
+	bgcolor=white;
+	get
+ [ color=black, fillcolor=white, label="get
+|time:0ms,BytecodeNumber:0,gasCost:0", shape=record, style=filled ];
+	gettwice
+ [ color=black, fillcolor=white, label="gettwice
+|time:0ms,BytecodeNumber:0,gasCost:0", shape=record, style=filled ];
+	set
+ [ color=black, fillcolor=white, label="set
+|time:0ms,BytecodeNumber:0,gasCost:0", shape=record, style=filled ];
+
+}

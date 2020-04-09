@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    body{
+        background: url("/static/img/login_bg.jpg");
+        animation-name:myfirst;
+        animation-duration:12s;
+        /*变换时间*/
+        animation-delay:2s;
+        /*动画开始时间*/
+        animation-iteration-count:infinite;
+        /*下一周期循环播放*/
+        animation-play-state:running;
+        /*动画开始运行*/
+    }
+    @keyframes myfirst
+    {
+        0%   {background:url("/static/img/login_bg1.jpg");}
+        34%  {background:url("/static/img/login_bg2.jpg");}
+        67%  {background:url("/static/img/login_bg3.jpg");}
+        100% {background:url("/static/img/login_bg4.jpg");}
+    }
+    .form{background: rgba(255,255,255,0.2);width:400px;margin:120px auto;}
+    /*阴影*/
+    .fa{display: inline-block;top: 27px;left: 6px;position: relative;color: #ccc;}
+    input[type="text"],input[type="password"]{padding-left:26px;}
+    .checkbox{padding-left:21px;}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+
+    <script src="/static/js/jquery.min.js"></script>
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/toastr/toastr.min.css">
+    <script src="/static/toastr/toastr.min.js"></script>
+
+
+</head>
+<body>
+<div class="container">
+    <div class="form row">
+        <div class="form-horizontal col-md-offset-3" id="login_form">
+            <h3 class="form-title">LOGIN</h3>
+            <div class="col-md-9">
+                <div class="form-group">
+                    <i class="fa fa-user fa-lg"></i>
+                    <input class="form-control required" type="text" placeholder="Username" id="username" name="username" autofocus="autofocus" maxlength="20"/>
+                </div>
+                <div class="form-group">
+                    <i class="fa fa-lock fa-lg"></i>
+                    <input class="form-control required" type="password" placeholder="Password" id="password" name="password" maxlength="8"/>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" name="remember" id="remember" value="1"/>记住我
+                    </label>
+                </div>
+                <div class="form-group col-md-offset-9">
+                    {{ if .flag}}
+                        <a href="/login" style="color: red;">登陆</a>
+                        <button type="submit" class="btn btn-success pull-right" name="submit" onclick="login('reg')">注册</button>
+                    {{else}}
+                        <a href="/login?flag=1" style="color: red;">注册</a>
+                        <button type="submit" class="btn btn-success pull-right" name="submit" onclick="login('login')">登录</button>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<script>
+    function login(act) {
+        uname = document.getElementById("username").value
+        upass = document.getElementById("password").value
+        remember = document.getElementById("remember").checked
+        $.post("/trylogin", {act:act, uname:uname, upass: upass, remember:remember}, function(ret){
+            if (1 === ret.status) {
+                toastr.info(ret.msg)
+                window.location.href = "/"
+            }else{
+                toastr.error(ret.msg)
+            }
+        },"json");
+    }
+</script>
